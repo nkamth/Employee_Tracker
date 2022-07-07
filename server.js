@@ -1,5 +1,6 @@
 const mysql = require("mysql2");
 const inquirer = require("inquirer");
+const cTable = require("console.table");
 
 console.log("check");
 
@@ -25,11 +26,19 @@ function mainQuestion() {
         type: "list",
         name: "mainQuestion",
         message: "What would you like to do?",
-        choices: ["View all Departments", "View all Roles", "View all Employees","Add a Department","Add a role","Add an Employee","Update an employee role"],
+        choices: [
+          "View all Departments",
+          "View all Roles",
+          "View all Employees",
+          "Add a Department",
+          "Add a role",
+          "Add an Employee",
+          "Update an employee role",
+        ],
       },
     ])
     .then((answer) => {
-      switch (answer) {
+      switch (answer.mainQuestion) {
         case "View all Departments":
           viewDepartment();
           break;
@@ -57,12 +66,25 @@ function mainQuestion() {
     });
 }
 
-function viewEmployees() {
-  connection.query("SELECT * FROM employees", (err, res) => {
+function viewDepartment() {
+  console.log("******* All Department *******");
+  connection.query("SELECT * FROM department", (err, res) => {
     if (err) throw err;
     console.table(res);
     mainQuestion();
   });
+}
+
+function viewRoles() {
+  console.log("******* All Roles *******");
+  connection.query(
+    "SELECT title, R.id , D.name , salary FROM role as R JOIN department as D on R.department_id=D.id",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      mainQuestion();
+    }
+  );
 }
 
 function done() {
