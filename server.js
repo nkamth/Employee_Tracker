@@ -67,13 +67,39 @@ function mainQuestion() {
 }
 
 var listDeptNames = [];
+var listEmp = [];
+var listRoles = [];
 
-function viewDeptNames() {
-  console.log(">>view dept names");
-  connection.query("SELECT name FROM department", function (err, data) {
+function deptChoices() {
+  connection.query("SELECT name FROM department", (err, data) => {
     if (err) throw err;
     for (i = 0; i < data.length; i++) {
       listDeptNames.push(data[i].name);
+    }
+  });
+  return;
+}
+
+function empChoices() {
+  connection.query("SELECT * FROM employee", (err, data) => {
+    if (err) throw err;
+    listEmp.push(0 + "-" + "NONE");
+    for (i = 0; i < data.length; i++) {
+      listEmp.push(
+        data[i].id + "-" + data[i].first_name + " " + data[i].last_name
+      );
+    }
+
+    console.log(listEmp);
+  });
+  return;
+}
+
+function roleChoices() {
+  connection.query("SELECT * FROM role", (err, data) => {
+    if (err) throw err;
+    for (i = 0; i < data.length; i++) {
+      listRoles.push(data[i].id + "-" + data[i].title);
     }
   });
   return;
@@ -98,7 +124,7 @@ function viewRoles() {
   console.log("******* All Roles *******");
   console.log(" - - - - - - - - - - - - - - - - -\n");
   connection.query(
-    "SELECT title as Job_Title , R.id , D.name as Dept_Name , salary FROM role as R JOIN department as D on R.department_id=D.id",
+    "SELECT title as Job_Title , R.id , D.name as Dept_Name , salary FROM role as R JOIN department as D on R.department_id=D.id ORDER BY R.id",
     (err, res) => {
       if (err) throw err;
       console.table(res);
@@ -112,7 +138,7 @@ function viewEmployees() {
   console.log("******* All Employees *******");
   console.log(" - - - - - - - - - - - - - - - - -\n");
   connection.query(
-    "SELECT E.id, E.first_name, E.last_name,R.title as Job_Title,D.name as Dept_Name,R.salary,M.first_name as Manager_name FROM employee as E LEFT JOIN role as R ON E.role_id = R.id LEFT JOIN department as D ON R.department_id = D.id LEFT JOIN employee as M on E.manager_id=M.id;",
+    "SELECT E.id, E.first_name, E.last_name,R.title as Job_Title,D.name as Dept_Name,R.salary,M.first_name as Manager_name FROM employee as E LEFT JOIN role as R ON E.role_id = R.id LEFT JOIN department as D ON R.department_id = D.id LEFT JOIN employee as M on E.manager_id=M.id ORDER BY E.id",
     (err, res) => {
       if (err) throw err;
       console.table(res);
@@ -146,7 +172,26 @@ function addDepartment() {
 }
 
 function addRole() {
-  viewDeptNames();
+  const departments = [];
+  connection.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+    res.forEach((dep) => {
+      let qObj = {
+        value: dep.id,
+        name: dep.name,
+        // value: dep.id,
+      };
+      departments.push(qObj);
+    });
+
+    // res.forEach(({ id, name }) => {
+    //   departments.push({
+    //     name: name,
+    //     value: id,
+    //   });
+    // });
+  });
+  // deptChoices();
   inquirer
     .prompt([
       {
@@ -161,26 +206,112 @@ function addRole() {
       },
       {
         type: "list",
-        name: "deptName",
+        name: "deptId",
         message: "Which Department does the role belong to?",
-        choices: listDeptNames,
+        // choices: listDeptNames,
+        choices: departments,
+      },
+    ])
+    // .then((answer) => {
+    //   connection.query(
+    //     `SELECT id from department where name ="${answer.deptName}"`,
+    //     (err, res) => {
+    //       if (err) throw err;
+    //       connection.query(
+    //         `INSERT INTO role(title,salary,department_id) VALUES("${answer.roleName}",${answer.salary},${res[0].id})`,
+    //         (err, res) => {
+    //           if (err) throw err;
+    //           console.log(
+    //             ` \n--> ADDED Role "${answer.roleName}" TO THE DATABASE !!\n `
+    //           );
+    //           mainQuestion();
+    //         }
+    //       );
+    //     }
+    //   );
+    // });
+    .then((answer) => {
+      // console.log(answer);
+      connection.query(
+        `INSERT INTO role(title,salary,department_id) VALUES("${answer.roleName}",${answer.salary},"${answer.deptId}")`,
+        (err, res) => {
+          if (err) throw err;
+          console.log(
+            ` \n--> ADDED Role "${answer.roleName}" TO THE DATABASE !!\n `
+          );
+          mainQuestion();
+        }
+      );
+    });
+}
+
+function addEmployee() {
+  // ...
+  const roleList = [];
+  connection.query("SELECT * FROM role", (err, res) => {
+    if (err) throw err;
+    res.forEach((roles) => {
+      let qObj = {
+        value: roles.id,
+        name: roles.title,
+      };
+      roleList.push(qObj);
+    });
+  });
+
+  // ...
+  const empList = [
+    {
+      name: "None",
+      value: 0,
+    },
+  ];
+  connection.query("SELECT * FROM employee", (err, res) => {
+    if (err) throw err;
+    res.forEach((emp) => {
+      let qObj = {
+        value: emp.id,
+        name: emp.first_name + " " + emp.last_name,
+      };
+      empList.push(qObj);
+    });
+  });
+
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "firstName",
+        message: "What is Employees First Name ?",
+      },
+      {
+        type: "input",
+        name: "lastName",
+        message: "What is Employees Last Name ?",
+      },
+      {
+        type: "list",
+        name: "roleId",
+        message: "What is Employees Role ?",
+        choices: roleList,
+      },
+      {
+        type: "list",
+        name: "manager",
+        message: "Who is the Employees Manager ?",
+        choices: empList,
       },
     ])
     .then((answer) => {
+      console.log(answer);
+      let manager_id = answer.manager !== 0 ? answer.manager : null;
       connection.query(
-        `SELECT id from department where name ="${answer.deptName}"`,
+        `INSERT INTO employee(first_name,last_name,role_id,manager_id) VALUES("${answer.firstName}","${answer.lastName}",${answer.roleId},manager_id) `,
         (err, res) => {
           if (err) throw err;
-          connection.query(
-            `INSERT INTO role(title,salary,department_id) VALUES("${answer.roleName}",${answer.salary},${res[0].id})`,
-            (err, res) => {
-              if (err) throw err;
-              console.log(
-                ` \n--> ADDED Role "${answer.roleName}" TO THE DATABASE !!\n `
-              );
-            }
+          console.log(
+            ` \n--> ADDED Employee "${answer.firstName}" TO THE DATABASE !!\n `
           );
-
           mainQuestion();
         }
       );
