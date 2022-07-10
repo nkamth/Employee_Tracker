@@ -1,4 +1,4 @@
-selecINSERT INTO department(name)
+INSERT INTO department(name)
 values ('Engineering'),
        ('Finance'),
        ('Marketing'),
@@ -15,11 +15,12 @@ VALUES ("Software Engineer",115000,1),
 
 INSERT INTO employee(first_name,last_name,role_id,manager_id)
 VALUES ("Lyra", "Brennan",1,NULL),
-       ("Kia","Brady",2,2),
-       ("Louise","Mccray",3,1),
-       ("Ayoub","Bass",4,1),
-       ("Frances","Robbins",5,2),
-       ("Eshan","Burgess",6,NULL),
-       ("Vanesa","Zamora",7,4),
-       ("Arfa","Lacey",4,2),
-       ("Aronas","Bloggs",6,3);
+       ("Kia","Brady",2,1),
+       ("Louise","Mccray",3,2),
+       ("Ayoub","Bass",4,NULL),
+       ("Frances","Robbins",5,3),
+       ("Eshan","Burgess",6,4),
+       ("Vanesa","Zamora",7,3),
+       ("Aida","Bugg",1,5),
+       ("Teri","Dactyl",3,NULL),
+       ("Allie","Grater",5,6);

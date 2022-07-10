@@ -67,18 +67,11 @@ function mainQuestion() {
 }
 
 function viewDepartment() {
-  console.log("******* All Department *******");
-  connection.query("SELECT * FROM department", (err, res) => {
-    if (err) throw err;
-    console.table(res);
-    mainQuestion();
-  });
-}
-
-function viewRoles() {
-  console.log("******* All Roles *******");
+  console.log("\n - - - - - - - - - - - - - - - - -");
+  console.log(" ******* All Department *******");
+  console.log(" - - - - - - - - - - - - - - - - -\n");
   connection.query(
-    "SELECT title, R.id , D.name , salary FROM role as R JOIN department as D on R.department_id=D.id",
+    "SELECT id as Dept_id,name as Dept_name FROM department",
     (err, res) => {
       if (err) throw err;
       console.table(res);
@@ -86,6 +79,36 @@ function viewRoles() {
     }
   );
 }
+
+function viewRoles() {
+  console.log("\n - - - - - - - - - - - - - - - - -");
+  console.log("******* All Roles *******");
+  console.log(" - - - - - - - - - - - - - - - - -\n");
+  connection.query(
+    "SELECT title as Job_Title , R.id , D.name as Dept_Name , salary FROM role as R JOIN department as D on R.department_id=D.id",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      mainQuestion();
+    }
+  );
+}
+
+function viewEmployees() {
+  console.log("\n - - - - - - - - - - - - - - - - -");
+  console.log("******* All Employees *******");
+  console.log(" - - - - - - - - - - - - - - - - -\n");
+  connection.query(
+    "SELECT E.id, E.first_name, E.last_name,R.title as Job_Title,D.name as Dept_Name,R.salary,M.first_name as Manager_name FROM employee as E LEFT JOIN role as R ON E.role_id = R.id LEFT JOIN department as D ON R.department_id = D.id LEFT JOIN employee as M on E.manager_id=M.id;",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+      mainQuestion();
+    }
+  );
+}
+// select E.first_name,E.manager_id,M.first_name from employee as E LEFT JOIN employee as M on E.manager_id=M.id
+// SELECT employee.id, employee.first_name, employee.last_name,role.title,department.name,role.salary FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id;
 
 function done() {
   connection.end();
