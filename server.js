@@ -34,6 +34,7 @@ function mainQuestion() {
           "Add a role",
           "Add an Employee",
           "Update an employee role",
+          "Done",
         ],
       },
     ])
@@ -287,26 +288,28 @@ function addEmployee() {
       {
         type: "input",
         name: "lastName",
-        message: "What is Employees Last Name ?",
+        message: "What is Employee's Last Name ?",
       },
       {
         type: "list",
         name: "roleId",
-        message: "What is Employees Role ?",
+        message: "What is Employee's Role ?",
         choices: roleList,
       },
       {
         type: "list",
-        name: "manager",
-        message: "Who is the Employees Manager ?",
+        name: "manager_id",
+        message: "Who is the Employee's Manager ?",
         choices: empList,
       },
     ])
     .then((answer) => {
       console.log(answer);
-      let manager_id = answer.manager !== 0 ? answer.manager : null;
+      console.log(answer.manager_id);
+      let manager_id = answer.manager_id !== 0 ? answer.manager_id : null;
       connection.query(
-        `INSERT INTO employee(first_name,last_name,role_id,manager_id) VALUES("${answer.firstName}","${answer.lastName}",${answer.roleId},manager_id) `,
+        `INSERT INTO employee(first_name,last_name,role_id,manager_id) VALUES("${answer.firstName}","${answer.lastName}",${answer.roleId},?) `,
+        [[manager_id]],
         (err, res) => {
           if (err) throw err;
           console.log(
@@ -317,6 +320,58 @@ function addEmployee() {
       );
     });
 }
+
+function updateEmployee() {
+  const empList = [];
+  connection.query("SELECT * FROM employee", (err, res) => {
+    if (err) throw err;
+    res.forEach((emp) => {
+      let qObj = {
+        value: emp.id,
+        name: emp.first_name + " " + emp.last_name,
+      };
+      empList.push(qObj);
+    });
+    const roleList = [];
+    connection.query("SELECT * FROM role", (err, res) => {
+      if (err) throw err;
+      res.forEach((role) => {
+        let qObjR = {
+          value: role.id,
+          name: role.title,
+        };
+        roleList.push(qObjR);
+      });
+
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "empId",
+            message: "Who's role do you want to update?",
+            choices: empList,
+          },
+          {
+            type: "list",
+            name: "roleId",
+            message: "What is the Employee's New Role ?",
+            choices: roleList,
+          },
+        ])
+        .then((answer) => {
+          connection.query(
+            `UPDATE employee SET role_id=${answer.roleId} WHERE id=${answer.empId}`,
+            (err, res) => {
+              if (err) throw err;
+              console.log("successfully updated employee's role!");
+              mainQuestion();
+            }
+          );
+        });
+    }); // end of  connection.query(role)
+  }); // end of connection.query(employee)
+}
+
 // select E.first_name,E.manager_id,M.first_name from employee as E LEFT JOIN employee as M on E.manager_id=M.id
 // SELECT employee.id, employee.first_name, employee.last_name,role.title,department.name,role.salary FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id;
 
