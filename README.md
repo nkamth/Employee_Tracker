@@ -8,6 +8,8 @@ The below link is a demonstration of how this application works in the termianl 
 
 View a complete Video demonstrarion of the application: [Employee Tracker](https://drive.google.com/file/d/1M_cLfTrsWvkfGJ2ZNzClNaH2fUm0D4oa/view)
 
+<iframe src="https://drive.google.com/file/d/1M_cLfTrsWvkfGJ2ZNzClNaH2fUm0D4oa/preview" width="640" height="480"></iframe>
+
 ## Table of Contents
 
 - [Description](#description)
