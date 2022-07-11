@@ -30,6 +30,8 @@ function mainQuestion() {
           "View all Departments",
           "View all Roles",
           "View all Employees",
+          "View all Employees by Manager",
+          "View all Employees by Department",
           "Add a Department",
           "Add a role",
           "Add an Employee",
@@ -48,6 +50,12 @@ function mainQuestion() {
           break;
         case "View all Employees":
           viewEmployees();
+          break;
+        case "View all Employees by Manager":
+          viewEmpByManager();
+          break;
+        case "View all Employees by Department":
+          viewEmpByDept();
           break;
         case "Add a Department":
           addDepartment();
@@ -146,6 +154,100 @@ function viewEmployees() {
       mainQuestion();
     }
   );
+}
+
+function viewEmpByManager() {
+  //get all the employee list
+  connection.query("SELECT * FROM employee", (err, emplRes) => {
+    if (err) throw err;
+    const employeeChoice = [
+      {
+        name: "None",
+        value: 0,
+      },
+    ];
+    emplRes.forEach((emp) => {
+      let qObj = {
+        name: emp.first_name + " " + emp.last_name,
+        value: emp.id,
+      };
+      employeeChoice.push(qObj);
+    });
+
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "manager_id",
+          choices: employeeChoice,
+          message: "which Manager's Employees you want to view ?",
+        },
+      ])
+      .then((answer) => {
+        let manager_id, query;
+        if (answer.manager_id) {
+          query = `SELECT E.id AS id, E.first_name AS first_name, E.last_name AS last_name, 
+        R.title AS role, D.name AS department, CONCAT(M.first_name, " ", M.last_name) AS manager
+        FROM employee AS E LEFT JOIN role AS R ON E.role_id = R.id
+        LEFT JOIN department AS D ON R.department_id = D.id
+        LEFT JOIN employee AS M ON E.manager_id = M.id
+        WHERE E.manager_id = ?;`;
+        } else {
+          manager_id = null;
+          query = `SELECT E.id AS id, E.first_name AS first_name, E.last_name AS last_name, 
+        R.title AS role, D.name AS department, CONCAT(M.first_name, " ", M.last_name) AS manager
+        FROM employee AS E LEFT JOIN role AS R ON E.role_id = R.id
+        LEFT JOIN department AS D ON R.department_id = D.id
+        LEFT JOIN employee AS M ON E.manager_id = M.id
+        WHERE E.manager_id is null;`;
+        }
+        connection.query(query, [answer.manager_id], (err, res) => {
+          if (err) throw err;
+          console.log("\n - - - - - - - - - - - - - - - - -");
+          console.log(`******* All Employees By Manager *******`);
+          console.log(" - - - - - - - - - - - - - - - - -\n");
+          console.table(res);
+          mainQuestion();
+        });
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  });
+}
+
+function viewEmpByDept() {
+  connection.query("SELECT * from department", (err, res) => {
+    if (err) throw err;
+    const deptList = [];
+    res.forEach((dept) => {
+      let qObj = {
+        name: dept.name,
+        id: dept.id,
+      };
+      deptList.push(qObj);
+    });
+    inquirer
+      .prompt([
+        {
+          type: "list",
+          name: "id",
+          message: "Which dept employees you want to view ?",
+          choices: deptList,
+        },
+      ])
+      .then((answer) => {
+        let query = `select E.id,E.first_name,E.last_name,R.title,R.salary,D.name from employee as E LEFT JOIN role as R on E.role_id=R.id LEFT JOIN department as D on R.department_id=D.id WHERE D.name=?;`;
+        connection.query(query, [answer.id], (err, res) => {
+          if (err) throw err;
+          console.log("\n - - - - - - - - - - - - - - - - -");
+          console.log(`******* All Employees By Department *******`);
+          console.log(" - - - - - - - - - - - - - - - - -\n");
+          console.table(res);
+          mainQuestion();
+        });
+      });
+  }); //end of dept query
 }
 
 function addDepartment() {
@@ -363,7 +465,7 @@ function updateEmployee() {
             `UPDATE employee SET role_id=${answer.roleId} WHERE id=${answer.empId}`,
             (err, res) => {
               if (err) throw err;
-              console.log("successfully updated employee's role!");
+              console.log(` \n--> Successfully Updated Employee's role !!\n `);
               mainQuestion();
             }
           );
